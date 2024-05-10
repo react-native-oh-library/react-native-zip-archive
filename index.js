@@ -1,10 +1,10 @@
 import ReactNative from "react-native";
 
-const { NativeEventEmitter, NativeModules } = ReactNative;
+// const { NativeEventEmitter, NativeModules } = ReactNative;
 
-const RNZipArchive = NativeModules.RNZipArchive;
+// const RNZipArchive = NativeModules.RNZipArchive;
 
-const rnzaEmitter = new NativeEventEmitter(RNZipArchive);
+// const rnzaEmitter = new NativeEventEmitter(RNZipArchive);
 
 const normalizeFilePath = (path) =>
   path.startsWith("file://") ? path.slice(7) : path;
@@ -67,4 +67,22 @@ export const subscribe = (callback) => {
 
 export const getUncompressedSize = (source, charset = "UTF-8") => {
   return RNZipArchive.getUncompressedSize(normalizeFilePath(source), charset);
+};
+
+import RNZipArchive from "./src/NativeZipArchive"
+
+export const compress = () => {
+  return RNZipArchive.compress();
+};
+
+export const decompress = () => {
+  return RNZipArchive.decompress();
+};
+
+export const compressWithPsd = () => {
+  return RNZipArchive.compressWithPsd();
+};
+
+export const decompressWithPsd = () => {
+  return RNZipArchive.decompressWithPsd();
 };

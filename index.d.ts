@@ -13,4 +13,8 @@ declare module 'react-native-zip-archive' {
   export function unzipAssets(assetPath: string, target: string): Promise<string>;
   export function subscribe(callback: ({ progress, filePath }: { progress: number, filePath: string }) => void): NativeEventSubscription;
   export function getUncompressedSize(source: string, charset?: string): Promise<number>;
+  export function compress():void;
+  export function decompress():void;
+  export function compressWithPsd():void;
+  export function decompressWithPsd():void;
 }

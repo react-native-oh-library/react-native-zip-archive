@@ -1,9 +1,15 @@
 {
-  "name": "react-native-zip-archive",
-  "version": "6.1.1",
+  "name": "@react-native--oh-tpl/react-native-zip-archive",
+  "version": "6.1.1-0.0.1",
   "description": "A little wrapper on ZipArchive for react-native",
-  "main": "index.js",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "react-native": "index.js",
+  "source": "index.js",
+  "types": "lib/typescript/index.d.ts",
   "scripts": {
+    "bob": "bob build",
+    "prepare": "npm run bob",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint index.js"
   },
@@ -18,7 +24,8 @@
     "zip",
     "archive",
     "zip-archive",
-    "unzip"
+    "unzip",
+    "harmony"
   ],
   "author": "Perry Poon <plrthink@gmail.com> (https://github.com/plrthink)",
   "homepage": "https://github.com/mockingbot/react-native-zip-archive",
@@ -28,10 +35,34 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "eslint": "^6.7.2",
     "react": ">=16.8.6",
-    "react-native": ">=0.60.0"
+    "react-native": ">=0.60.0",
+    "react-native-builder-bob": "^0.20.4"
   },
   "peerDependencies": {
     "react": ">=16.8.6",
     "react-native": ">=0.60.0"
-  }
+  },
+  "harmony": {
+    "alias": "react-native-zip-archive",
+    "codegenConfig": {
+      "specPaths": [
+        "./src"
+      ]
+    }
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module"
+    ]
+  },
+  "files": [
+    "src",
+    "harmony",
+    "lib",
+    "index.js",
+    "index.d.ts"
+  ]
 }
