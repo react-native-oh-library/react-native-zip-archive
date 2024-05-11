@@ -1,9 +1,0 @@
-{
-  module: {
-    name: 'zipArchive_package',
-    type: 'har',
-    deviceTypes: [
-      "default",
-    ]
-  }
-}
