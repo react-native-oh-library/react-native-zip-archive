@@ -1,8 +1,8 @@
-import { TurboModule } from "rnoh/ts";
+import { TurboModule } from "@rnoh/react-native-openharmony/ts";
 import common from '@ohos.app.ability.common';
 import promptAction from '@ohos.promptAction'
 import minizip from "libnativi_minizip.so";
-import {TM} from 'rnoh/generated/ts'
+import {TM} from '@rnoh/react-native-openharmony/generated/ts'
 
 //获取应用文件路径
 let context = getContext(this) as common.UIAbilityContext;
