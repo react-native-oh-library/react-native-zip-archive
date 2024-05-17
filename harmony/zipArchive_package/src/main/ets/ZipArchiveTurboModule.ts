@@ -4,13 +4,6 @@ import promptAction from '@ohos.promptAction'
 import minizip from "libnativi_minizip.so";
 import { TM } from '@rnoh/react-native-openharmony/generated/ts'
 
-
-enum encryptionMethods {
-  'STANDARD',
-  'AES-128',
-  'AES-256'
-}
-
 export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchive.Spec {
 
   pathParameters(): string {
@@ -20,7 +13,7 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     return newFilesDir;
   }
 
-  // 原接口压缩
+  // react-native-zip-archive接口
   zip(sourcePath: string, zipPath: string): Promise<string> {
     try {
       this.compress(sourcePath, zipPath);
@@ -62,6 +55,7 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
+  // minizip接口
   compress(sourcePath: string, zipPath: string) {
     try {
       let result = minizip.create().compress({
@@ -90,7 +84,6 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  // 加密压缩
   compressWithPsd(sourcePath: string, zipPath: string, password: string): void {
     try {
       let result = minizip.create().compressWithPsd({
@@ -105,8 +98,7 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
       console.info(`compressWithPsd err: ${error}}`)
     }
   }
-
-  // 加密解压
+  
   decompressWithPsd(sourcePath: string, zipPath: string, password: string): void {
     try {
       let result = minizip.create().decompressWithPsd({
