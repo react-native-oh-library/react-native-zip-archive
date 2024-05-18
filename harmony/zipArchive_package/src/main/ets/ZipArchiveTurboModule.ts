@@ -14,9 +14,9 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
   }
 
   // react-native-zip-archive接口
-  zip(sourcePath: string, zipPath: string): Promise<string> {
+  zip(source: string, target: string): Promise<string> {
     try {
-      this.compress(sourcePath, zipPath);
+      this.compress(source, target);
       return Promise.resolve('压缩成功');
     } catch (err) {
       console.info(`zip error: ${err}`);
@@ -24,9 +24,9 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  unzip(sourcePath: string, zipPath: string, charset: string = "UTF-8"): Promise<string> {
+  unzip(source: string, target: string, charset: string = "UTF-8"): Promise<string> {
     try {
-      this.decompress(sourcePath, zipPath)
+      this.decompress(source, target)
       return Promise.resolve('解压成功');
     } catch (err) {
       console.info(`unzip error: ${err}`);
@@ -34,10 +34,10 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  zipWithPassword(sourcePath: string, zipPath: string, password: string,
+  zipWithPassword(source: string, target: string, password: string,
     encryptionMethod?:  'STANDARD' | 'AES-128' | 'AES-256' | ''): Promise<string> {
     try {
-      this.compressWithPsd(sourcePath, zipPath, password);
+      this.compressWithPsd(source, target, password);
       return Promise.resolve('加密压缩成功');
     } catch (err) {
       console.info(`zipWithPassword error: ${err}`);
@@ -45,9 +45,9 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  unzipWithPassword(sourcePath: string, zipPath: string, password: string): Promise<string> {
+  unzipWithPassword(source: string, target: string, password: string): Promise<string> {
     try {
-      this.decompressWithPsd(sourcePath, zipPath, password)
+      this.decompressWithPsd(source, target, password)
       return Promise.resolve('加密解压成功');
     } catch (err) {
       console.info(`unzipWithPassword error: ${err}`);
@@ -56,13 +56,13 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
   }
 
   // minizip接口
-  compress(sourcePath: string, zipPath: string) {
+  compress(source: string, target: string) {
     try {
       let result = minizip.create().compress({
-        path: zipPath,
+        path: source,
         operate: "compress",
         option: { append: 1, compress_level: 9 },
-        files: [sourcePath]
+        files: [target]
       })
       console.info(`compress result: ${result}`)
     } catch (error) {
@@ -70,13 +70,13 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  decompress(sourcePath: string, zipPath: string): void {
+  decompress(source: string, target: string): void {
     try {
       let result = minizip.create().decompress({
-        path: zipPath,
+        path: source,
         operate: "decompress",
         option: { overwrite: 1, compress_level: 9 },
-        directory: sourcePath
+        directory: target
       })
       console.info(`decompress result: ${result}`)
     } catch (error) {
@@ -84,14 +84,14 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
 
-  compressWithPsd(sourcePath: string, zipPath: string, password: string): void {
+  compressWithPsd(source: string, target: string, password: string): void {
     try {
       let result = minizip.create().compressWithPsd({
-        path: zipPath,
+        path: source,
         password: password,
         operate: "compress",
         option: { overwrite: 1, compress_level: 9 },
-        files: [sourcePath]
+        files: [target]
       })
       console.info(`compressWithPsd result: ${result}`)
     } catch (error) {
@@ -99,14 +99,14 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
     }
   }
   
-  decompressWithPsd(sourcePath: string, zipPath: string, password: string): void {
+  decompressWithPsd(source: string, target: string, password: string): void {
     try {
       let result = minizip.create().decompressWithPsd({
-        path: zipPath,
+        path: source,
         password: password,
         operate: "decompress",
         option: { overwrite: 1, compress_level: 9 },
-        directory: sourcePath
+        directory: target
       })
       console.info(`decompressWithPsd result: ${result}`)
     } catch (error) {
