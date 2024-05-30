@@ -6,6 +6,7 @@
 
 #ifndef MYAPPLICATION_MINIZIP_H
 #define MYAPPLICATION_MINIZIP_H
+
 #include "mz.h"
 #include "mz_os.h"
 #include "mz_strm.h"
@@ -34,12 +35,28 @@ typedef struct minizip_opt_s {
     const char *cert_pwd;
 } minizip_opt;
 
+typedef struct minizip_opt_other_s {
+    char path[512];
+    char password[512];
+    char optBuf[512];
+    char file_extract[512];
+    char destination[512];
+    char cert_pwd[256] = {0};
+    char cert_path[256] = {0};
+    uint32_t argc = 0;
+    char *argv[128];
+} minizip_opt_other;
 
-int32_t minizip_add(const char *path, const char *password, minizip_opt *options, int32_t arg_count, const char **args);
 
-int32_t minizip_extract(const char *path, const char *pattern, const char *destination, const char *password, minizip_opt *options);
+int32_t minizip_add(const char *path, const char *password, minizip_opt *options, int32_t arg_count, const char **args, void (*)(float));
+
+int32_t minizip_extract(const char *path, const char *pattern, const char *destination, const char *password, minizip_opt *options, void (*)(float, int));
 
 int32_t minizip_list(const char *path);
+
+bool minizip_is_password_protected(const char *path);
+
+int32_t minizip_get_uncompressed_size(const char *path);
 
 #ifdef __cplusplus
 }

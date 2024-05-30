@@ -1,6 +1,14 @@
-import ReactNative from "react-native";
+import ReactNative, { DeviceEventEmitter } from "react-native";
 import RNZipArchive from "./src/NativeZipArchive"
+const { NativeEventEmitter, NativeModules } = ReactNative;
 
+// const RNZipArchive = NativeModules.RNZipArchive;
+
+const rnzaEmitter = new NativeEventEmitter(RNZipArchive);
+
+export const creteFile = (filePath, fileContent) => {
+  return RNZipArchive.creteFile(filePath, fileContent)
+}
 
 export const pathParameters = () => {
   return RNZipArchive.pathParameters();
@@ -22,24 +30,28 @@ export const unzipWithPassword = (source, target, password) => {
   return RNZipArchive.unzipWithPassword(source, target, password);
 };
 
-// export const unzipAssets = (source, target) => {
-//   if (!RNZipArchive.unzipAssets) {
-//     throw new Error("unzipAssets not supported on this platform");
-//   }
+export const isPasswordProtected = (source) => {
+  return RNZipArchive.isPasswordProtected(source);
+};
 
-//   return RNZipArchive.unzipAssets(source, target);
-// };
+export const subscribe = (callback) => {
+  const onZipArchiveProgressEvent = DeviceEventEmitter.addListener('zipArchiveProgressEvent', (progress) => {
+    callback({ progress });
+    if (progress === 100) {
+      onZipArchiveProgressEvent.remove();
+    }
+  })
+};
 
-// export const subscribe = (callback) => {
-//   return rnzaEmitter.addListener("zipArchiveProgressEvent", callback);
-// };
+export const unzipAssets = (source, target) => {
+  if (!RNZipArchive.unzipAssets) {
+    throw new Error("unzipAssets not supported on this platform");
+  }
 
-// export const getUncompressedSize = (source, charset = "UTF-8") => {
-//   return RNZipArchive.getUncompressedSize(source, charset);
-// };
+  return RNZipArchive.unzipAssets(source, target);
+};
 
-// export const isPasswordProtected = (source) => {
-//   return RNZipArchive.isPasswordProtected(source).then(
-//     (isEncrypted) => !!isEncrypted
-//   );
-// };
+export const getUncompressedSize = (source, charset = "UTF-8") => {
+  return RNZipArchive.getUncompressedSize(source, charset);
+};
+

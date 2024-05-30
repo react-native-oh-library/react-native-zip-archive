@@ -18,6 +18,7 @@
 #include "mz_zip_rw.h"
 #include <js_native_api.h>
 #include <js_native_api_types.h>
+#include "minizip.h"
 
 #define NAPI_CLASS_NAME "minizipNapiClass"
 
@@ -28,21 +29,29 @@ public:
 
     static napi_value Create(napi_env env, napi_callback_info info);
     static napi_value Init(napi_env env, napi_value exports);
+    static void DoDecompressWork(napi_env env, napi_value js_callback, void *context, void *data);
+
+    static napi_env mEnv;
+    static napi_ref mRef;
 
 private:
     static napi_value Compress(napi_env env, napi_callback_info info);
     static napi_value Decompress(napi_env env, napi_callback_info info);
     static napi_value CompressWithPsd(napi_env env, napi_callback_info info);
     static napi_value DecompressWithPsd(napi_env env, napi_callback_info info);
+    static napi_value IsPasswordProtected(napi_env env, napi_callback_info info);
+    static napi_value GetUnCompressedSize(napi_env env, napi_callback_info info);
+
 
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
 
     static napi_ref sConstructor_;
 
+    static napi_ref mRefFuncProgress;
 
-    napi_env mEnv = nullptr;
-    napi_ref mRef = nullptr;
+    //    napi_env mEnv = nullptr;
+    //    napi_ref mRef = nullptr;
 };
 
 #endif //MYAPPLICATION_MINIZIPNAPI_H

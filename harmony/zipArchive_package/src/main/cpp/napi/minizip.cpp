@@ -3,21 +3,23 @@
 //
 // Node APIs are not fully supported. To solve the compilation error of the interface cannot be found,
 // please include "napi/native_api.h".
+#include <bits/alltypes.h>
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 
 #include <stdio.h>
 
 #include "minizip.h"
-
+#include <hilog/log.h>
+const unsigned int LOG_PRINT_DOMAIN = 0XFF00;
 /***************************************************************************/
 
 int32_t minizip_add_entry_cb(void *handle, void *userdata, mz_zip_file *file_info);
-int32_t minizip_add_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position);
+int32_t minizip_add_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position, float &refProgress);
 int32_t minizip_add_overwrite_cb(void *handle, void *userdata, const char *path);
 
 int32_t minizip_extract_entry_cb(void *handle, void *userdata, mz_zip_file *file_info, const char *path);
-int32_t minizip_extract_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position);
+int32_t minizip_extract_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position, float &refProgress, int &uncompressedSize);
 int32_t minizip_extract_overwrite_cb(void *handle, void *userdata, mz_zip_file *file_info, const char *path);
 
 /***************************************************************************/
@@ -107,7 +109,8 @@ int32_t minizip_add_entry_cb(void *handle, void *userdata, mz_zip_file *file_inf
     return MZ_OK;
 }
 
-int32_t minizip_add_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position) {
+int32_t minizip_add_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position, float &refProgress) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528", "start minizip_add_progress_cb");
     minizip_opt *options = (minizip_opt *)userdata;
     double progress = 0;
     uint8_t raw = 0;
@@ -121,6 +124,8 @@ int32_t minizip_add_progress_cb(void *handle, void *userdata, mz_zip_file *file_
     else if (!raw && file_info->uncompressed_size > 0)
         progress = ((double)position / file_info->uncompressed_size) * 100;
 
+    refProgress = progress;
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528", "refProgress111 = %{public}f", refProgress);
     /* Print the progress of the current compress operation */
     if (options->verbose)
         printf("%s - %" PRId64 " / %" PRId64 " (%.02f%%)\n", file_info->filename, position,
@@ -158,7 +163,8 @@ int32_t minizip_add_overwrite_cb(void *handle, void *userdata, const char *path)
 }
 
 int32_t minizip_add(const char *path, const char *password, minizip_opt *options, int32_t arg_count,
-                    const char **args) {
+                    const char **args,void (*funcProgressCallbackzip)(float progress)) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528", "start minizip_add");
     void *writer = NULL;
     int32_t err = MZ_OK;
     int32_t err_close = MZ_OK;
@@ -177,7 +183,7 @@ int32_t minizip_add(const char *path, const char *password, minizip_opt *options
     mz_zip_writer_set_follow_links(writer, options->follow_links);
     mz_zip_writer_set_store_links(writer, options->store_links);
     mz_zip_writer_set_overwrite_cb(writer, options, minizip_add_overwrite_cb);
-    mz_zip_writer_set_progress_cb(writer, options, minizip_add_progress_cb);
+    mz_zip_writer_set_progress_cb(writer, options, minizip_add_progress_cb, funcProgressCallbackzip);
     mz_zip_writer_set_entry_cb(writer, options, minizip_add_entry_cb);
     mz_zip_writer_set_zip_cd(writer, options->zip_cd);
     // HILOGI("cert_path : %{public}s", options->cert_path);
@@ -226,7 +232,8 @@ int32_t minizip_extract_entry_cb(void *handle, void *userdata, mz_zip_file *file
     return MZ_OK;
 }
 
-int32_t minizip_extract_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position) {
+int32_t minizip_extract_progress_cb(void *handle, void *userdata, mz_zip_file *file_info, int64_t position, float &refProgress, int &uncompressedSize) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "start minizip_extract_progress_cb");
     minizip_opt *options = (minizip_opt *)userdata;
     double progress = 0;
     uint8_t raw = 0;
@@ -235,13 +242,22 @@ int32_t minizip_extract_progress_cb(void *handle, void *userdata, mz_zip_file *f
 
     mz_zip_reader_get_raw(handle, &raw);
 
-    if (raw && file_info->compressed_size > 0)
+    if (raw && file_info->compressed_size > 0) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "position1 = %{public}f", position);
         progress = ((double)position / file_info->compressed_size) * 100;
-    else if (!raw && file_info->uncompressed_size > 0)
-        progress = ((double)position / file_info->uncompressed_size) * 100;
+    }
+    else if (!raw && file_info->uncompressed_size > 0) {
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "position2 = %{public}f", position);
+            progress = ((double)position / file_info->uncompressed_size) * 100;
+    }
+        
 
+    refProgress = progress;
+    uncompressedSize = file_info->uncompressed_size - position;
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "refProgress = %{public}f, uncompressedSize11111 = %{public}lld", refProgress, uncompressedSize);
     /* Print the progress of the current extraction */
     if (options->verbose)
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "start options->verbose");
         printf("%s - %" PRId64 " / %" PRId64 " (%.02f%%)\n", file_info->filename, position,
                file_info->uncompressed_size, progress);
 
@@ -277,7 +293,8 @@ int32_t minizip_extract_overwrite_cb(void *handle, void *userdata, mz_zip_file *
 }
 
 int32_t minizip_extract(const char *path, const char *pattern, const char *destination, const char *password,
-                        minizip_opt *options) {
+                        minizip_opt *options, void (*funcProgressCallback)(float progress, int uncompressSize)) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "start minizip_extract");
     void *reader = NULL;
     int32_t err = MZ_OK;
     int32_t err_close = MZ_OK;
@@ -292,12 +309,15 @@ int32_t minizip_extract(const char *path, const char *pattern, const char *desti
     mz_zip_reader_set_password(reader, password);
     mz_zip_reader_set_encoding(reader, options->encoding);
     mz_zip_reader_set_entry_cb(reader, options, minizip_extract_entry_cb);
-    mz_zip_reader_set_progress_cb(reader, options, minizip_extract_progress_cb);
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "start mz_zip_reader_set_progress_cb000");
+    mz_zip_reader_set_progress_cb(reader, options, minizip_extract_progress_cb, funcProgressCallback);
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0514", "start mz_zip_reader_set_progress_cb");
     mz_zip_reader_set_overwrite_cb(reader, options, minizip_extract_overwrite_cb);
 
     err = mz_zip_reader_open_file(reader, path);
 
     if (err != MZ_OK) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0522", "start err111111111111");
         printf("Error %" PRId32 " opening archive %s\n", err, path);
         //    HILOGE("Error %{public}" PRId32 " opening archive %{public}s\n", err, path);
     } else {
@@ -439,4 +459,125 @@ int32_t minizip_erase(const char *src_path, const char *target_path, int32_t arg
     }
 
     return err;
+}
+
+bool minizip_is_password_protected(const char *path) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::IsPasswordProtected",
+                 "password_protected const char *path:%{public}s", path); // 沙箱路径
+    if (path == NULL) {
+        return false;
+    }
+    mz_zip_file *file_info = NULL;
+    void *reader = NULL;
+    int32_t err = MZ_OK;
+
+    reader = mz_zip_reader_create();
+    if (!reader) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::IsPasswordProtected",
+                     "password_protected mz_zip_reader_create fail and return false");
+        return false;
+    }
+
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::IsPasswordProtected",
+                 "before mz_zip_reader_open_file");
+    err = mz_zip_reader_open_file(reader, path);
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
+                 "lmm in mz_zip_reader_open_file first err = %{public}d",
+                 err); // -107 MZ_EXIST_ERROR
+    if (err != MZ_OK) {
+        printf("Error %" PRId32 " opening archive %s\n", err, path);
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::IsPasswordProtected",
+                     "password_protected mz_zip_reader_open_file fail and return false");
+        mz_zip_reader_delete(&reader);
+        return false;
+    }
+
+    err = mz_zip_reader_goto_first_entry(reader);
+    if (err != MZ_OK && err != MZ_END_OF_LIST) {
+        printf("Error %" PRId32 " going to first entry in archive\n", err);
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::IsPasswordProtected",
+                     "password_protected mz_zip_reader_goto_first_entry fail and return false");
+        mz_zip_reader_delete(&reader);
+        return false;
+    }
+
+    do {
+        err = mz_zip_reader_entry_get_info(reader, &file_info);
+        if (err != MZ_OK) {
+            printf("Error %" PRId32 " getting entry info in archive\n", err);
+            break;
+        }
+        int32_t encrypted = file_info->flag & MZ_ZIP_FLAG_ENCRYPTED;
+
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528", "encrypted = %{public}d", encrypted);
+        if (file_info->flag & MZ_ZIP_FLAG_ENCRYPTED) {
+            return true;
+        }
+        err = mz_zip_reader_goto_next_entry(reader);
+        if (err != MZ_OK && err != MZ_END_OF_LIST) {
+            printf("Error %" PRId32 " going to next entry in archive\n", err);
+            break;
+        }
+    } while (err == MZ_OK);
+
+    mz_zip_reader_delete(&reader);
+    return false;
+}
+
+int32_t minizip_get_uncompressed_size(const char *path) {
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::GetUnCompressSize",
+                 "getUncompressedsize const char *path:%{public}s", path);
+    if (path == NULL) {
+        return false;
+    }
+    mz_zip_file *file_info = NULL;
+    void *reader = NULL;
+    int32_t err = MZ_OK;
+
+    reader = mz_zip_reader_create();
+    if (!reader) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::GetUnCompressSize",
+                     "mz_zip_reader_create fail and return -1");
+        return -1;
+    }
+
+    err = mz_zip_reader_open_file(reader, path);
+    if (err != MZ_OK) {
+        printf("Error %" PRId32 " opening archive %s\n", err, path);
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::GetUnCompressSize",
+                     "mz_zip_reader_open_file fail and return -1");
+        mz_zip_reader_delete(&reader);
+        return -1;
+    }
+
+    err = mz_zip_reader_goto_first_entry(reader);
+    if (err != MZ_OK && err != MZ_END_OF_LIST) {
+        printf("Error %" PRId32 " going to first entry in archive\n", err);
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "minizipNapi::GetUnCompressSize",
+                     "mz_zip_reader_goto_first_entry fail and return false");
+        mz_zip_reader_delete(&reader);
+        return -1;
+    }
+
+    do {
+        err = mz_zip_reader_entry_get_info(reader, &file_info);
+        if (err != MZ_OK) {
+            printf("Error %" PRId32 " getting entry info in archive\n", err);
+            break;
+        }
+        int32_t unCompressedSize = file_info->uncompressed_size;
+        OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528", "unCompressedSize = %{public}d",
+                     unCompressedSize);
+        if (unCompressedSize > 0) {
+            return unCompressedSize;
+        }
+        err = mz_zip_reader_goto_next_entry(reader);
+        if (err != MZ_OK && err != MZ_END_OF_LIST) {
+            printf("Error %" PRId32 " going to next entry in archive\n", err);
+            break;
+        }
+    } while (err == MZ_OK);
+
+    mz_zip_reader_delete(&reader);
+    return -1;
 }
