@@ -21,7 +21,9 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 
 add_library(nativi_minizip SHARED
             napi/minizip.cpp
-            napi/minizipNapi.cpp)
+            napi/minizipNapi.cpp
+            napi/mz_zip_rw.cpp
+            )
 
 target_link_libraries(nativi_minizip PUBLIC libace_napi.z.so)
 target_link_libraries(nativi_minizip PUBLIC libhilog_ndk.z.so)
