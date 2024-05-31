@@ -1,0 +1,14 @@
+prefix=/home/owner/workspace/tpc_c_cplusplus/lycium/usr/minizip-ng/x86_64
+exec_prefix=/home/owner/workspace/tpc_c_cplusplus/lycium/usr/minizip-ng/x86_64
+libdir=/home/owner/workspace/tpc_c_cplusplus/lycium/usr/minizip-ng/x86_64/lib
+sharedlibdir=/home/owner/workspace/tpc_c_cplusplus/lycium/usr/minizip-ng/x86_64/lib
+includedir=/home/owner/workspace/tpc_c_cplusplus/lycium/usr/minizip-ng/x86_64/include/minizip
+
+Name: minizip
+Description: Zip manipulation library
+Version: 4.0.0
+
+Requires: zlib
+Libs: -L${libdir} -L${sharedlibdir} -lminizip
+Libs.private: -llzma -lzstd
+Cflags: -I${includedir}
