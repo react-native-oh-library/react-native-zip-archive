@@ -165,10 +165,10 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
   decompress(source: string, target: string): void {
     try {
       let result = minizip.create().decompress({
-        path: target,
+        path: source,
         operate: "decompress",
         option: { overwrite: 1, compress_level: 9 },
-        directory: source
+        directory: target
       }, (progress: number) => {
         this.ctx.rnInstance.emitDeviceEvent('zipArchiveProgressEvent', Math.floor(progress));
         console.info(`test-0514 progress---: ${Math.floor(progress)}`)
@@ -200,11 +200,11 @@ export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchiv
   decompressWithPsd(source: string, target: string, password: string): void {
     try {
       let result = minizip.create().decompressWithPsd({
-        path: target,
+        path: source,
         password: password,
         operate: "decompress",
         option: { overwrite: 1, compress_level: 9 },
-        directory: source
+        directory: target
       }, (progress: number) => {
         this.ctx.rnInstance.emitDeviceEvent('zipArchiveProgressEvent', Math.floor(progress));
         console.info(`test-0514 progress---decompressWithPsd: ${Math.trunc(progress)}`)
