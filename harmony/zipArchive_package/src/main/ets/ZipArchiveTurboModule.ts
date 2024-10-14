@@ -2,7 +2,7 @@ import { TurboModule } from "@rnoh/react-native-openharmony/ts";
 import common from '@ohos.app.ability.common';
 import minizip from "libnativi_minizip.so";
 import { TM } from '@rnoh/react-native-openharmony/generated/ts'
-import { RNOHContext } from '@rnoh/react-native-openharmony/ts'
+import { TurboModuleContext } from '@rnoh/react-native-openharmony/ts'
 import fs from '@ohos.file.fs';
 import { BusinessError } from '@kit.BasicServicesKit';
 import Logger from './Logger';
@@ -19,7 +19,7 @@ interface FilePath {
 let context = getContext(this) as common.UIAbilityContext;
 
 export class ZipArchiveTurboModule extends TurboModule implements TM.RNZipArchive.Spec {
-  ctx: RNOHContext;
+  ctx: TurboModuleContext;
 
   // 沙箱路径
   pathParameters(): string {
