@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "react-native-zip-archive",
+        "License": "MIT License",
+        "License File": "https://github.com/mockingbot/react-native-zip-archive/blob/master/LICENSE",
+        "Version Number": "6.1.1-0.1.0",
+        "Owner" : "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/mockingbot/react-native-zip-archive",
+        "Description": "zip-archive for react-native"
+    }
+]
