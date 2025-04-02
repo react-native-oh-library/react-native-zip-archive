@@ -123,3 +123,4 @@ captures/
 
 # npm pack output
 /*.tgz
+lib/
