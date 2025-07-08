@@ -1,6 +1,6 @@
 {
   "name": "@react-native-oh-tpl/react-native-zip-archive",
-  "version": "6.1.1-0.1.0-rc.1",
+  "version": "6.1.1-0.1.0-rc.2",
   "types": "",
   "overrides": {
     "@rnoh/react-native-openharmony": 'file:../react_native_openharmony',
@@ -12,6 +12,6 @@
     "@rnoh/react-native-openharmony": 'file:../react_native_openharmony',
     "libnativi_minizip.so": "file:./src/main/cpp/types/libentry"
   },
-  "main": "index.ets",
+  "main": "Index.ets",
   "type": "module",
 }
