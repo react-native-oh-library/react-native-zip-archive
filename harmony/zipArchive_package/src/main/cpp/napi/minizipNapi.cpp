@@ -77,25 +77,44 @@ void ProgressCallback(float progress, int uncompressSize) {
 }
 
 void ProgressCallbackzip(float progress) {
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
-                 "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
-    // 创建一个int，作为ArkTS的入参
-    napi_value parValue = nullptr;
-    napi_create_double(minizipNapi::mEnv, progress, &parValue);
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
-                 "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(minizipNapi::mEnv, &loop);
+    if (loop == nullptr) {
+        return;
+    }
 
-    // 调用 JavaScript 函数
-    napi_value jsFunction;
-    auto status = napi_get_reference_value(minizipNapi::mEnv, minizipNapi::mRef, &jsFunction);
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
-                 "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        return;
+    }
 
+    work->data = new float(progress);
 
-    // 调用传入的callback，并将其结果返回
-    status = napi_call_function(minizipNapi::mEnv, nullptr, jsFunction, 1, &parValue, nullptr);
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
+    uv_queue_work(loop, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int32_t status) {
+            float* progress = (float*)work->data;
+
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
                  "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+            // 创建一个int，作为ArkTS的入参
+            napi_value parValue = nullptr;
+            napi_create_double(minizipNapi::mEnv, *progress, &parValue);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
+                         "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+
+            // 调用 JavaScript 函数
+            napi_value jsFunction;
+            napi_get_reference_value(minizipNapi::mEnv, minizipNapi::mRef, &jsFunction);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
+                         "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+
+            // 调用传入的callback，并将其结果返回
+            napi_call_function(minizipNapi::mEnv, nullptr, jsFunction, 1, &parValue, nullptr);
+            OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "test-0528",
+                         "ProgressCallback, log out,file=%{public}s,line=%{public}d", __FILE__, __LINE__);
+            delete progress;
+            delete work;
+        });
 }
 
 
@@ -369,7 +388,7 @@ napi_value minizipNapi::Decompress(napi_env env, napi_callback_info info) {
     // 异步执行解压操作,创建async work，创建成功后通过最后一个参数(addonData->asyncWork)返回async work的handle
     napi_value work_name;
     napi_create_string_utf8(env, "napi_create_threadsafe_function", NAPI_AUTO_LENGTH, &work_name);
-    
+
     minizipNapi::mEnv = env;
     napi_create_threadsafe_function(env, value[1], nullptr, work_name, 0, 1, nullptr, nullptr, (void*)async_data, DoDecompressWork, &g_callbackFunc);
     napi_call_threadsafe_function(g_callbackFunc, nullptr, napi_tsfn_nonblocking);
@@ -414,13 +433,33 @@ napi_value minizipNapi::CompressWithPsd(napi_env env, napi_callback_info info) {
 
     minizip_parser_params_get(env, value[0], &async_data->opt, &async_data->optother);
 
-    // 异步执行解压操作,创建async work，创建成功后通过最后一个参数(addonData->asyncWork)返回async work的handle
-    napi_value work_name;
-    napi_create_string_utf8(env, "napi_create_threadsafe_function", NAPI_AUTO_LENGTH, &work_name);
-    minizipNapi::mEnv = env;
-    napi_create_threadsafe_function(env, value[1], nullptr, work_name, 0, 1, nullptr, nullptr, (void *)async_data,
-                                    DoDecompressWork, &g_callbackFunc);
-    napi_call_threadsafe_function(g_callbackFunc, nullptr, napi_tsfn_nonblocking);
+	minizipNapi::mEnv = env;
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env, &loop);
+    if (loop == nullptr) {
+        return nullptr;
+    }
+
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        return nullptr;
+    }
+
+    work->data = async_data;
+
+    uv_queue_work(loop, work, [](uv_work_t *work) {
+        minizipWorkData *async_data = (minizipWorkData *) work->data;
+        async_data->result = async_data->funcZip(minizipNapi::mEnv, &async_data->opt, &async_data->optother);
+    }, [](uv_work_t *work, int32_t status) {
+        minizipWorkData *async_data = (minizipWorkData *) work->data;
+        napi_value result, undefined;
+        // 返回结果给js
+        napi_create_int64(minizipNapi::mEnv, async_data->result, &result);
+        napi_resolve_deferred(minizipNapi::mEnv, async_data->deferred, result);
+        napi_delete_async_work(minizipNapi::mEnv, async_data->asyncwork);
+        delete async_data;
+        delete work;
+    });
     
     if (napi_create_int64(env, 0, &result) != napi_ok) {
         std::cout << "napi_create_int64" << std::endl;
