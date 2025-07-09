@@ -1,6 +1,6 @@
 {
   "name": "@react-native-oh-tpl/react-native-zip-archive",
-  "version": "6.1.1-0.1.0-rc.2",
+  "version": "6.1.1-0.1.0-rc.3",
   "types": "",
   "overrides": {
     "@rnoh/react-native-openharmony": 'file:../react_native_openharmony',
